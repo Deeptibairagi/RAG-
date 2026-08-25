@@ -1,3 +1,5 @@
+
+
 from langchain_groq import ChatGroq
 
 from config.settings import GROQ_API_KEY, GROQ_MODEL
@@ -9,7 +11,7 @@ from config.settings import GROQ_API_KEY, GROQ_MODEL
 
 
 def create_chat_model():
-    llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0, groq_api_key=GROQ_API_KEY)
+    llm = ChatGroq(model=GROQ_MODEL, temperature=0, groq_api_key=GROQ_API_KEY)
 
     return llm
 
