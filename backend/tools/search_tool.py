@@ -1,27 +1,44 @@
-from langchain_community.tools import DuckDuckGoSearchRun
-from ddgs.exceptions import TimeoutException
+from langchain_core.tools import tool
+from ddgs import DDGS
 
 
-ddg_search = DuckDuckGoSearchRun()
+@tool
+def web_search(query: str) -> str:
+    """
+    Search the web for current information.
+    """
 
-
-def safe_web_search(query: str) -> str:
     try:
-        result = ddg_search.invoke(query)
+        with DDGS(timeout=10) as ddgs:
+            results = list(
+                ddgs.text(
+                    query,
+                    max_results=5
+                )
+            )
 
-        if not result:
-            return "No web search results were found."
+        if not results:
+            return "No web search results found."
 
-        return result
+        output = []
 
-    except TimeoutException:
-        return (
-            "Web search timed out. "
-            "Please answer using the available knowledge and retrieved documents."
-        )
+        for result in results:
+            title = result.get("title", "")
+            body = result.get("body", "")
+            url = result.get("href", "")
+
+            output.append(
+                f"Title: {title}\n"
+                f"Content: {body}\n"
+                f"URL: {url}"
+            )
+
+        return "\n\n".join(output)
 
     except Exception as e:
+        print(f"Web search error: {e}")
+
         return (
-            "Web search is temporarily unavailable. "
-            "Please answer using the available knowledge and retrieved documents."
+            "Web search is currently unavailable. "
+            "Please answer using the available knowledge."
         )
