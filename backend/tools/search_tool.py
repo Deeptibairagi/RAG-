@@ -1,24 +1,27 @@
 from langchain_community.tools import DuckDuckGoSearchRun
-
-from langchain_core.tools import tool
-
-search_tool = DuckDuckGoSearchRun()
+from ddgs.exceptions import TimeoutException
 
 
+ddg_search = DuckDuckGoSearchRun()
 
 
-def web_search(query: str) -> str:
-    """
-    Search the web using DuckDuckGo.
-    """
-
-    if not query or not query.strip():
-        return "Please provide a search query."
-
+def safe_web_search(query: str) -> str:
     try:
-        result = search_tool.invoke(query)
+        result = ddg_search.invoke(query)
 
-        return str(result)
+        if not result:
+            return "No web search results were found."
+
+        return result
+
+    except TimeoutException:
+        return (
+            "Web search timed out. "
+            "Please answer using the available knowledge and retrieved documents."
+        )
 
     except Exception as e:
-        return f"Search failed: {str(e)}"
+        return (
+            "Web search is temporarily unavailable. "
+            "Please answer using the available knowledge and retrieved documents."
+        )
