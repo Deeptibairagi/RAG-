@@ -1,8 +1,15 @@
+
+
+
 # import streamlit as st
 
 # from langchain_core.messages import HumanMessage
 
-# from backend.repositories.thread_repository import load_conversation, retrieve_all_threads, delete_thread
+# from backend.repositories.thread_repository import (
+#     load_conversation,
+#     retrieve_all_threads,
+#     delete_thread
+# )
 
 # from utils.message_utils import convert_messages_for_ui
 
@@ -15,7 +22,9 @@
 
 #     if "chat_threads" not in st.session_state:
 
-#         st.session_state["chat_threads"] = retrieve_all_threads()
+#         st.session_state["chat_threads"] = (
+#             retrieve_all_threads()
+#         )
 
 
 # # ==========================================================
@@ -29,21 +38,28 @@
 #     for message in messages:
 
 #         if not isinstance(message, HumanMessage):
-
 #             continue
 
-#         title = str(message.content).strip()
+#         title = str(
+#             message.content
+#         ).strip()
 
 #         if not title:
 #             continue
 
 #         if "USER QUESTION:" in title:
 
-#             title = title.split("USER QUESTION:", 1 )[1].strip()
+#             title = title.split(
+#                 "USER QUESTION:",
+#                 1
+#             )[1].strip()
 
 #         if len(title) > 40:
 
-#             title = (title[:40] + "...")
+#             title = (
+#                 title[:40]
+#                 + "..."
+#             )
 
 #         return title
 
@@ -58,7 +74,9 @@
 
 #     messages = load_conversation(thread_id)
 
-#     st.session_state["message_history"] = convert_messages_for_ui(messages)
+#     st.session_state["message_history"] = (
+#         convert_messages_for_ui(messages)
+#     )
 
 
 # # ==========================================================
@@ -71,11 +89,18 @@
 
 #         st.session_state["chat_titles"] = {}
 
-#     for thread_id in st.session_state["chat_threads"]:
+#     for thread_id in st.session_state.get(
+#         "chat_threads",
+#         []
+#     ):
+
+#         thread_id = str(thread_id)
 
 #         if thread_id not in st.session_state["chat_titles"]:
 
-#             st.session_state["chat_titles"][thread_id] = get_thread_title(thread_id)
+#             st.session_state["chat_titles"][thread_id] = (
+#                 get_thread_title(thread_id)
+#             )
 
 
 # # ==========================================================
@@ -84,17 +109,47 @@
 
 # def remove_thread(thread_id):
 
+#     thread_id = str(thread_id)
+
+#     # Delete from database
 #     success = delete_thread(thread_id)
 
 #     if not success:
-
 #         return False
 
-#     if thread_id in st.session_state["chat_threads"]:
+#     # Remove from session thread list
+#     threads = st.session_state.get(
+#         "chat_threads",
+#         []
+#     )
 
-#         st.session_state["chat_threads"].remove(thread_id)
+#     st.session_state["chat_threads"] = [
+#         str(t)
+#         for t in threads
+#         if str(t) != thread_id
+#     ]
 
-#     st.session_state["chat_titles"].pop(thread_id, None)
+#     # Remove title
+#     titles = st.session_state.get(
+#         "chat_titles",
+#         {}
+#     )
+
+#     titles.pop(thread_id, None)
+
+#     st.session_state["chat_titles"] = titles
+
+#     # If deleted thread was active
+#     current_thread = str(
+#         st.session_state.get(
+#             "thread_id",
+#             ""
+#         )
+#     )
+
+#     if current_thread == thread_id:
+
+#         st.session_state["message_history"] = []
 
 #     return True
 
@@ -112,33 +167,43 @@ from backend.repositories.thread_repository import (
     delete_thread
 )
 
-from utils.message_utils import convert_messages_for_ui
+from utils.message_utils import (
+    convert_messages_for_ui
+)
 
 
 # ==========================================================
-# INITIAL THREADS
+# INITIALIZE THREADS
 # ==========================================================
 
 def initialize_threads():
 
     if "chat_threads" not in st.session_state:
 
-        st.session_state["chat_threads"] = (
-            retrieve_all_threads()
-        )
+        st.session_state["chat_threads"] = [
+            str(thread_id)
+            for thread_id in retrieve_all_threads()
+        ]
 
 
 # ==========================================================
-# THREAD TITLE
+# GET THREAD TITLE
 # ==========================================================
 
 def get_thread_title(thread_id):
 
-    messages = load_conversation(thread_id)
+    thread_id = str(thread_id)
+
+    messages = load_conversation(
+        thread_id
+    )
 
     for message in messages:
 
-        if not isinstance(message, HumanMessage):
+        if not isinstance(
+            message,
+            HumanMessage
+        ):
             continue
 
         title = str(
@@ -148,6 +213,7 @@ def get_thread_title(thread_id):
         if not title:
             continue
 
+        # Remove uploaded-document prefix
         if "USER QUESTION:" in title:
 
             title = title.split(
@@ -173,22 +239,30 @@ def get_thread_title(thread_id):
 
 def restore_chat(thread_id):
 
-    messages = load_conversation(thread_id)
+    thread_id = str(thread_id)
 
-    st.session_state["message_history"] = (
-        convert_messages_for_ui(messages)
+    messages = load_conversation(
+        thread_id
+    )
+
+    st.session_state[
+        "message_history"
+    ] = convert_messages_for_ui(
+        messages
     )
 
 
 # ==========================================================
-# LOAD TITLES
+# INITIALIZE TITLES
 # ==========================================================
 
 def initialize_titles():
 
     if "chat_titles" not in st.session_state:
 
-        st.session_state["chat_titles"] = {}
+        st.session_state[
+            "chat_titles"
+        ] = {}
 
     for thread_id in st.session_state.get(
         "chat_threads",
@@ -197,50 +271,75 @@ def initialize_titles():
 
         thread_id = str(thread_id)
 
-        if thread_id not in st.session_state["chat_titles"]:
+        if thread_id not in st.session_state[
+            "chat_titles"
+        ]:
 
-            st.session_state["chat_titles"][thread_id] = (
-                get_thread_title(thread_id)
+            st.session_state[
+                "chat_titles"
+            ][thread_id] = get_thread_title(
+                thread_id
             )
 
 
 # ==========================================================
-# DELETE THREAD
+# REMOVE THREAD
 # ==========================================================
 
 def remove_thread(thread_id):
 
     thread_id = str(thread_id)
 
-    # Delete from database
-    success = delete_thread(thread_id)
+    # ------------------------------------------------------
+    # DELETE FROM LANGGRAPH DATABASE
+    # ------------------------------------------------------
+
+    success = delete_thread(
+        thread_id
+    )
 
     if not success:
         return False
 
-    # Remove from session thread list
+    # ------------------------------------------------------
+    # REMOVE FROM SESSION THREAD LIST
+    # ------------------------------------------------------
+
     threads = st.session_state.get(
         "chat_threads",
         []
     )
 
-    st.session_state["chat_threads"] = [
-        str(t)
-        for t in threads
-        if str(t) != thread_id
+    st.session_state[
+        "chat_threads"
+    ] = [
+        str(thread)
+        for thread in threads
+        if str(thread) != thread_id
     ]
 
-    # Remove title
+    # ------------------------------------------------------
+    # REMOVE TITLE
+    # ------------------------------------------------------
+
     titles = st.session_state.get(
         "chat_titles",
         {}
     )
 
-    titles.pop(thread_id, None)
+    titles.pop(
+        thread_id,
+        None
+    )
 
-    st.session_state["chat_titles"] = titles
+    st.session_state[
+        "chat_titles"
+    ] = titles
 
-    # If deleted thread was active
+    # ------------------------------------------------------
+    # IF CURRENT THREAD WAS DELETED
+    # ------------------------------------------------------
+
     current_thread = str(
         st.session_state.get(
             "thread_id",
@@ -250,6 +349,8 @@ def remove_thread(thread_id):
 
     if current_thread == thread_id:
 
-        st.session_state["message_history"] = []
+        st.session_state[
+            "message_history"
+        ] = []
 
     return True
