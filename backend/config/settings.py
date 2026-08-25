@@ -7,25 +7,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def get_groq_api_key():
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-    # Streamlit Cloud
-    try:
-        if "GROQ_API_KEY" in st.secrets:
-            return st.secrets["GROQ_API_KEY"]
-    except Exception:
-        pass
-
-    # Local .env
-    return os.getenv("GROQ_API_KEY")
-
-
-GROQ_API_KEY = get_groq_api_key()
+GROQ_MODEL = "openai/gpt-oss-20b"
 
 if not GROQ_API_KEY:
-    raise ValueError(
-        "GROQ_API_KEY is not configured."
-    )
+    raise ValueError("GROQ_API_KEY is missing")
 
 
 
