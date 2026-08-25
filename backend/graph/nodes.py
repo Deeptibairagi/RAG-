@@ -75,6 +75,16 @@ llm_with_tools = chat_model.bind_tools(TOOLS)
 
 def chat_node(state: ChatState):
 
+    """
+    Main chatbot node.
+
+    The LLM receives:
+    1. System instructions
+    2. Previous conversation messages
+
+    If a tool is required, the LLM generates a tool call.
+    """
+
     messages = state["messages"]
 
     system_message = SystemMessage(content=SYSTEM_PROMPT)
