@@ -161,6 +161,7 @@
 
 
 
+
 from backend.graph.graph import chatbot
 from backend.database.checkpoint import checkpointer
 
@@ -171,15 +172,13 @@ from backend.database.checkpoint import checkpointer
 
 def load_conversation(thread_id):
     """
-    Load all messages for a conversation thread.
+    Load all messages for a specific thread.
     """
-
-    thread_id = str(thread_id)
 
     try:
         config = {
             "configurable": {
-                "thread_id": thread_id
+                "thread_id": str(thread_id)
             }
         }
 
@@ -191,10 +190,7 @@ def load_conversation(thread_id):
         return state.values.get("messages", [])
 
     except Exception as e:
-        print(
-            f"Error loading conversation {thread_id}: {e}"
-        )
-
+        print(f"Error loading conversation {thread_id}: {e}")
         return []
 
 
@@ -204,7 +200,8 @@ def load_conversation(thread_id):
 
 def retrieve_all_threads():
     """
-    Retrieve all thread IDs stored by LangGraph.
+    Return all thread IDs stored in the LangGraph SQLite
+    checkpoint database.
     """
 
     all_threads = set()
@@ -217,25 +214,15 @@ def retrieve_all_threads():
             if not config:
                 continue
 
-            configurable = config.get(
-                "configurable",
-                {}
-            )
+            configurable = config.get("configurable", {})
 
-            thread_id = configurable.get(
-                "thread_id"
-            )
+            thread_id = configurable.get("thread_id")
 
             if thread_id:
-                all_threads.add(
-                    str(thread_id)
-                )
+                all_threads.add(str(thread_id))
 
     except Exception as e:
-
-        print(
-            f"Error retrieving threads: {e}"
-        )
+        print(f"Error retrieving threads: {e}")
 
     return list(all_threads)
 
@@ -246,10 +233,13 @@ def retrieve_all_threads():
 
 def delete_thread(thread_id):
     """
-    Delete a complete LangGraph conversation.
+    Delete a complete LangGraph thread.
 
-    Uses LangGraph's official delete_thread()
-    instead of manually deleting SQLite tables.
+    IMPORTANT:
+    We use the SAME SqliteSaver connection that LangGraph
+    uses for checkpoints.
+
+    Do NOT create another sqlite3 connection here.
     """
 
     thread_id = str(thread_id)
@@ -257,12 +247,19 @@ def delete_thread(thread_id):
     try:
 
         # --------------------------------------------------
-        # DELETE FROM LANGGRAPH CHECKPOINTER
+        # IMPORTANT FIX
+        # --------------------------------------------------
+        # Use LangGraph's built-in delete_thread().
+        #
+        # This deletes:
+        #   - checkpoints
+        #   - writes
+        #
+        # using the same connection and lock used by
+        # the LangGraph checkpointer.
         # --------------------------------------------------
 
-        checkpointer.delete_thread(
-            thread_id
-        )
+        checkpointer.delete_thread(thread_id)
 
         print(
             f"Successfully deleted thread: {thread_id}"

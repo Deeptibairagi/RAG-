@@ -251,7 +251,6 @@
 
 
 
-
 import streamlit as st
 
 from services.thread_service import (
@@ -260,9 +259,56 @@ from services.thread_service import (
     remove_thread
 )
 
-from utils.session_state import (
-    reset_chat
-)
+from utils.session_state import reset_chat
+
+
+# ==========================================================
+# DELETE CHAT CALLBACK
+# ==========================================================
+
+def delete_chat_callback(thread_id):
+    """
+    Delete a chat thread.
+
+    This callback runs before Streamlit redraws the page.
+    """
+
+    thread_id = str(thread_id)
+
+    try:
+
+        success = remove_thread(thread_id)
+
+        if success:
+
+            # --------------------------------------------------
+            # If deleted chat was the current chat,
+            # create a fresh chat.
+            # --------------------------------------------------
+
+            if str(
+                st.session_state.get(
+                    "thread_id",
+                    ""
+                )
+            ) == thread_id:
+
+                reset_chat()
+
+            st.session_state["delete_success"] = True
+            st.session_state["delete_error"] = ""
+
+        else:
+
+            st.session_state["delete_success"] = False
+            st.session_state["delete_error"] = (
+                "Database deletion returned False."
+            )
+
+    except Exception as e:
+
+        st.session_state["delete_success"] = False
+        st.session_state["delete_error"] = str(e)
 
 
 # ==========================================================
@@ -320,6 +366,8 @@ def render_sidebar():
         <div class="personal-chatbot-title">
             🤖 Personal Chatbot
         </div>
+        <div style="height: 30px;"></div>
+        
         """,
         unsafe_allow_html=True
     )
@@ -329,32 +377,61 @@ def render_sidebar():
     # ======================================================
 
     initialize_titles()
+    
+
+    # ======================================================
+    # NEW CHAT
+    # ======================================================
+    
+    if st.sidebar.button("➕ New Chat", width="stretch", key="new_chat_button"):
+    
+        reset_chat()
+    
+        st.rerun()
+    
+
+    # ======================================================
+    # SHOW DELETE RESULT
+    # ======================================================
+
+    if st.session_state.get(
+        "delete_success",
+        False
+    ):
+
+        st.sidebar.success(
+            "Chat deleted successfully."
+        )
+
+        st.session_state["delete_success"] = False
+
+    if st.session_state.get(
+        "delete_error",
+        ""
+    ):
+
+        st.sidebar.error(
+            "Unable to delete this chat."
+        )
+
+        st.sidebar.caption(
+            st.session_state["delete_error"]
+        )
+
+        st.session_state["delete_error"] = ""
 
     # ======================================================
     # GAP
     # ======================================================
 
-    st.sidebar.markdown(
-        """
-        <div style="height: 12px;"></div>
-        """,
-        unsafe_allow_html=True
-    )
+    # st.sidebar.markdown(
+    #     """
+    #     <div style="height: 12px;"></div>
+    #     """,
+    #     unsafe_allow_html=True
+    # )
 
-    # ======================================================
-    # NEW CHAT
-    # ======================================================
-
-    if st.sidebar.button(
-        "➕ New Chat",
-        use_container_width=True,
-        key="new_chat_button"
-    ):
-
-        reset_chat()
-
-        st.rerun()
-
+    
     # ======================================================
     # DIVIDER
     # ======================================================
@@ -389,6 +466,10 @@ def render_sidebar():
             []
         )
 
+        # --------------------------------------------------
+        # NO THREADS
+        # --------------------------------------------------
+
         if not threads:
 
             st.caption(
@@ -396,16 +477,16 @@ def render_sidebar():
             )
 
         # --------------------------------------------------
-        # SHOW NEWEST FIRST
+        # THREADS
         # --------------------------------------------------
 
-        for thread_id in reversed(
-            threads
-        ):
+        for thread_id in reversed(threads):
 
-            thread_id = str(
-                thread_id
-            )
+            thread_id = str(thread_id)
+
+            # ==================================================
+            # TITLE
+            # ==================================================
 
             title = (
                 st.session_state[
@@ -417,7 +498,7 @@ def render_sidebar():
             )
 
             # ==================================================
-            # THREAD ROW
+            # ROW
             # ==================================================
 
             col1, col2 = st.columns(
@@ -434,7 +515,7 @@ def render_sidebar():
                 if st.button(
                     title,
                     key=f"open_{thread_id}",
-                    use_container_width=True
+                    width="stretch"
                 ):
 
                     st.session_state[
@@ -453,41 +534,11 @@ def render_sidebar():
 
             with col2:
 
-                if st.button(
+                st.button(
                     "🗑️",
                     key=f"delete_{thread_id}",
-                    use_container_width=True
-                ):
-
-                    current_thread = str(
-                        st.session_state.get(
-                            "thread_id",
-                            ""
-                        )
-                    )
-
-                    success = remove_thread(
-                        thread_id
-                    )
-
-                    if success:
-
-                        # ----------------------------------
-                        # If deleting active chat
-                        # ----------------------------------
-
-                        if current_thread == thread_id:
-
-                            reset_chat()
-
-                        # ----------------------------------
-                        # Refresh immediately
-                        # ----------------------------------
-
-                        st.rerun()
-
-                    else:
-
-                        st.error(
-                            "Unable to delete this chat."
-                        )
+                    width="stretch",
+                    help="Delete this chat",
+                    on_click=delete_chat_callback,
+                    args=(thread_id,)
+                )

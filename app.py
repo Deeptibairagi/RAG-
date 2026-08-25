@@ -2,26 +2,43 @@
 
 # import streamlit as st
 
-# from config.settings import (APP_TITLE, APP_ICON)
+# from config.settings import (
+#     APP_TITLE,
+#     APP_ICON
+# )
 
-# from backend.repositories.thread_repository import (retrieve_all_threads)
+# from services.thread_service import (
+#     initialize_threads,
+#     restore_chat
+# )
 
-# from services.thread_service import (initialize_threads, restore_chat)
+# from utils.session_state import (
+#     initialize_session_state
+# )
 
-# from utils.session_state import (initialize_session_state)
+# from ui.sidebar import (
+#     render_sidebar
+# )
 
-# from ui.sidebar import (render_sidebar)
+# from ui.chat import (
+#     create_chat_container,
+#     render_chat_history
+# )
 
-# from ui.chat import (create_chat_container, render_chat_history)
-
-# from ui.chat_input import (render_chat_input)
+# from ui.chat_input import (
+#     render_chat_input
+# )
 
 
 # # ==========================================================
 # # PAGE CONFIG
 # # ==========================================================
 
-# st.set_page_config(page_title=APP_TITLE, page_icon=APP_ICON, layout="wide")
+# st.set_page_config(
+#     page_title=APP_TITLE,
+#     page_icon=APP_ICON,
+#     layout="wide"
+# )
 
 
 # # ==========================================================
@@ -30,18 +47,19 @@
 
 # initialize_threads()
 
-# threads = st.session_state.get("chat_threads")
-
-# if threads is None:
-
-#     threads = retrieve_all_threads()
+# threads = st.session_state.get(
+#     "chat_threads",
+#     []
+# )
 
 
 # # ==========================================================
 # # INITIALIZE SESSION STATE
 # # ==========================================================
 
-# initialize_session_state(threads)
+# initialize_session_state(
+#     threads
+# )
 
 
 # # ==========================================================
@@ -50,7 +68,9 @@
 
 # if not st.session_state["message_history"]:
 
-#     restore_chat(st.session_state["thread_id"])
+#     restore_chat(
+#         st.session_state["thread_id"]
+#     )
 
 
 # # ==========================================================
@@ -64,9 +84,12 @@
 # # MAIN TITLE
 # # ==========================================================
 
-# st.title("Think Smarter. Work Faster")
+# st.title(
+#     "Think Smarter. Work Faster"
+# )
 
-# st.markdown("""
+# st.markdown(
+#     """
 #     <div style="font-size: 15px; line-height: 1.2;">
 #     👋 <b>Hello! I'm your AI Assistant</b><br>
 #     Powered by LangGraph & Large Language Models — here to help you
@@ -81,41 +104,33 @@
 #     <br><br>
 #     </div>
 #     """,
-#     unsafe_allow_html=True)
+#     unsafe_allow_html=True
+# )
 
 
 # # ==========================================================
 # # CHAT CONTAINER
-# #
-# # IMPORTANT:
-# # autoscroll=True automatically keeps the latest streamed
-# # content visible while new content is being added.
 # # ==========================================================
 
 # chat_container = create_chat_container()
 
 
 # # ==========================================================
-# # RENDER EXISTING CHAT HISTORY
+# # CHAT HISTORY
 # # ==========================================================
 
-# render_chat_history(chat_container)
+# render_chat_history(
+#     chat_container
+# )
 
 
 # # ==========================================================
 # # CHAT INPUT
-# #
-# # The input is placed inside st.bottom so it stays at the
-# # bottom while the assistant is streaming.
-# #
-# # handle_message() receives the same chat_container so the
-# # streaming assistant response is added to the scrolling
-# # chat area, NOT after the input.
 # # ==========================================================
 
-# render_chat_input(chat_container)
-
-
+# render_chat_input(
+#     chat_container
+# )
 
 
 
@@ -207,20 +222,36 @@ st.title(
     "Think Smarter. Work Faster"
 )
 
+
+# ==========================================================
+# INTRODUCTION
+# ==========================================================
+
 st.markdown(
     """
     <div style="font-size: 15px; line-height: 1.2;">
+
     👋 <b>Hello! I'm your AI Assistant</b><br>
-    Powered by LangGraph & Large Language Models — here to help you
-    think, search, upload files and calculate smarter.
+
+    Powered by LangGraph & Large Language Models —
+    here to help you think, search, upload files
+    and calculate smarter.
+
     <br><br>
+
     💬 <b>Ask anything</b> — General knowledge & explanations<br>
+
     🌦️ <b>Live weather</b> — "Weather in Chennai"<br>
+
     📈 <b>Stock prices</b> — "Price of HDFC Bank stock"<br>
-    🧮 <b>Calculations</b> — "Calculate EMI for ₹10L at 9% for 5 years"
+
+    🧮 <b>Calculations</b> —
+    "Calculate EMI for ₹10L at 9% for 5 years"
+
     <br><br>
+
     <b>How can I assist you today?</b>
-    <br><br>
+
     </div>
     """,
     unsafe_allow_html=True
