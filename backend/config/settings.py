@@ -1,13 +1,33 @@
+
+
 import os
+
 from dotenv import load_dotenv
 
 
 load_dotenv()
 
+def get_groq_api_key():
 
-HF_REPO_ID = os.getenv("HF_REPO_ID", "Qwen/Qwen2.5-72B-Instruct")
+    # Streamlit Cloud
+    try:
+        if "GROQ_API_KEY" in st.secrets:
+            return st.secrets["GROQ_API_KEY"]
+    except Exception:
+        pass
 
-HF_TASK = os.getenv("HF_TASK", "text-generation")
+    # Local .env
+    return os.getenv("GROQ_API_KEY")
+
+
+GROQ_API_KEY = get_groq_api_key()
+
+if not GROQ_API_KEY:
+    raise ValueError(
+        "GROQ_API_KEY is not configured."
+    )
+
+
 
 MAX_DOCUMENT_SIZE_MB = int(os.getenv("MAX_DOCUMENT_SIZE_MB", "10"))
 
