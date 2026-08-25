@@ -100,7 +100,9 @@ def handle_message(user_input, chat_container):
     # chat_container has autoscroll=True.
     # ======================================================
 
-    ai_response = render_assistant_stream(chat_container, response_stream)
+
+    with st.spinner("🤔 AI is thinking..."):
+        ai_response = render_assistant_stream(chat_container, response_stream)
 
 
     # ======================================================
