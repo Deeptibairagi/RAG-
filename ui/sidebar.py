@@ -211,23 +211,43 @@ def render_sidebar():
 
                     if success:
 
-                        current_thread = str(st.session_state["thread_id"])
-
-
-                        # ------------------------------
-                        # If deleting current chat
-                        # ------------------------------
-
-                        if current_thread == thread_id:
+                        # If deleted chat was active,
+                        # create a fresh chat
+                        if str(st.session_state.get("thread_id", "")) == thread_id:
 
                             reset_chat()
 
-
-                        # ------------------------------
-                        # Refresh
-                        # ------------------------------
-
+                        # Refresh sidebar immediately
                         st.rerun()
+
+                    else:
+
+                        st.error("Unable to delete this chat.")
+
+
+
+
+
+
+
+
+                        # current_thread = str(st.session_state["thread_id"])
+
+
+                        # # ------------------------------
+                        # # If deleting current chat
+                        # # ------------------------------
+
+                        # if current_thread == thread_id:
+
+                        #     reset_chat()
+
+
+                        # # ------------------------------
+                        # # Refresh
+                        # # ------------------------------
+
+                        # st.rerun()
 
 
 
